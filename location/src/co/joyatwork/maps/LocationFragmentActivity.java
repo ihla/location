@@ -1,5 +1,7 @@
 package co.joyatwork.maps;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.maps.LocationSource;
 
 import android.location.Location;
@@ -8,7 +10,11 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 
-public class LocationFragmentActivity extends FragmentActivity  implements LocationListener, LocationSource {
+public class LocationFragmentActivity extends FragmentActivity  
+	implements LocationSource, 
+			LocationListener, 
+			GooglePlayServicesClient.ConnectionCallbacks,
+			GooglePlayServicesClient.OnConnectionFailedListener  {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +31,9 @@ public class LocationFragmentActivity extends FragmentActivity  implements Locat
     }
 
 
+    /**
+     * LocationSource
+     */
 	@Override
 	public void activate(OnLocationChangedListener arg0) {
 		// TODO Auto-generated method stub
@@ -32,6 +41,9 @@ public class LocationFragmentActivity extends FragmentActivity  implements Locat
 	}
 
 
+    /**
+     * LocationSource
+     */
 	@Override
 	public void deactivate() {
 		// TODO Auto-generated method stub
@@ -39,6 +51,9 @@ public class LocationFragmentActivity extends FragmentActivity  implements Locat
 	}
 
 
+	/**
+	 * LocationListener
+	 */
 	@Override
 	public void onLocationChanged(Location arg0) {
 		// TODO Auto-generated method stub
@@ -46,6 +61,9 @@ public class LocationFragmentActivity extends FragmentActivity  implements Locat
 	}
 
 
+	/**
+	 * LocationListener
+	 */
 	@Override
 	public void onProviderDisabled(String arg0) {
 		// TODO Auto-generated method stub
@@ -53,6 +71,9 @@ public class LocationFragmentActivity extends FragmentActivity  implements Locat
 	}
 
 
+	/**
+	 * LocationListener
+	 */
 	@Override
 	public void onProviderEnabled(String arg0) {
 		// TODO Auto-generated method stub
@@ -60,8 +81,40 @@ public class LocationFragmentActivity extends FragmentActivity  implements Locat
 	}
 
 
+	/**
+	 * LocationListener
+	 */
 	@Override
 	public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	/**
+	 * OnConnectionFailedListener
+	 */
+	@Override
+	public void onConnectionFailed(ConnectionResult arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * ConnectionCallbacks
+	 */
+	@Override
+	public void onConnected(Bundle arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	/**
+	 * ConnectionCallbacks
+	 */
+	@Override
+	public void onDisconnected() {
 		// TODO Auto-generated method stub
 		
 	}
