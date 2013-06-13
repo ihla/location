@@ -1,0 +1,1 @@
+Uses Google Play Services API. Import the google-play-services_lib project in your IDE.
