@@ -1,26 +1,71 @@
 package co.joyatwork.maps;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.maps.LocationSource;
-
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.Menu;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.maps.LocationSource;
 
 public class LocationFragmentActivity extends FragmentActivity  
 	implements LocationSource, 
 			LocationListener, 
 			GooglePlayServicesClient.ConnectionCallbacks,
-			GooglePlayServicesClient.OnConnectionFailedListener  {
+			GooglePlayServicesClient.OnConnectionFailedListener {
 
-    @Override
+	private LocationClient locationClient;
+	private Location currentLocation;
+	private static String TAG = "Location";
+
+
+	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.location_fragment_activity);
+
+        /*
+         * Create a new location client, using the enclosing class to
+         * handle callbacks.
+         */
+        locationClient = new LocationClient(this, this, this);
     }
+
+	@Override
+	protected void onResume() {
+		
+		super.onResume();
+		locationClient.connect();
+
+	}
+
+	@Override
+	protected void onPause() {
+	
+		if (locationClient.isConnected()) {
+
+			locationClient.removeLocationUpdates(this);
+		
+		}
+		locationClient.disconnect();
+		super.onPause();
+
+	}
+
+
+    @Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+	}
+
+
 
 
     @Override
@@ -55,38 +100,10 @@ public class LocationFragmentActivity extends FragmentActivity
 	 * LocationListener
 	 */
 	@Override
-	public void onLocationChanged(Location arg0) {
-		// TODO Auto-generated method stub
+	public void onLocationChanged(Location location) {
 		
-	}
-
-
-	/**
-	 * LocationListener
-	 */
-	@Override
-	public void onProviderDisabled(String arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	/**
-	 * LocationListener
-	 */
-	@Override
-	public void onProviderEnabled(String arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	/**
-	 * LocationListener
-	 */
-	@Override
-	public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-		// TODO Auto-generated method stub
+		currentLocation = location;
+		Log.d(TAG, "onLocationChanged - " + currentLocation.toString());
 		
 	}
 
@@ -105,8 +122,21 @@ public class LocationFragmentActivity extends FragmentActivity
 	 */
 	@Override
 	public void onConnected(Bundle arg0) {
-		// TODO Auto-generated method stub
+
+		/* 
+		 * If a location is not available, which should happen very rarely, null will be returned.
+		 */
+		currentLocation = locationClient.getLastLocation();
 		
+		Toast.makeText(this, "LocationClient connected", Toast.LENGTH_SHORT).show();
+		Log.d(TAG, "onConnected - " + (currentLocation != null ? currentLocation.toString() : "?"));
+		
+		LocationRequest locationRequest = LocationRequest.create()
+				.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+				.setInterval(5000)
+				;
+		
+		locationClient.requestLocationUpdates(locationRequest, this);
 	}
 
 
@@ -115,8 +145,9 @@ public class LocationFragmentActivity extends FragmentActivity
 	 */
 	@Override
 	public void onDisconnected() {
-		// TODO Auto-generated method stub
-		
+
+		Toast.makeText(this, "LocationClient disconnected", Toast.LENGTH_SHORT).show();
+
 	}
     
 }
