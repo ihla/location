@@ -230,7 +230,7 @@ public class LocationFragmentActivity extends FragmentActivity
 
 		    	 //map.animateCamera(
 	        		// CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
-		    	 map.animateCamera(
+		    	 map.moveCamera(
 		        		 CameraUpdateFactory.newCameraPosition(newCameraPosition));
 		    	 
 		     }
