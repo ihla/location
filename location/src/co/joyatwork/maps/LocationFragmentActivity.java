@@ -1,5 +1,9 @@
 package co.joyatwork.maps;
 
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -19,9 +23,11 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.maps.android.SphericalUtil;
 
 public class LocationFragmentActivity extends FragmentActivity  
-	implements LocationSource, 
+	implements SensorEventListener, 
+			LocationSource, 
 			LocationListener, 
 			GooglePlayServicesClient.ConnectionCallbacks,
 			GooglePlayServicesClient.OnConnectionFailedListener {
@@ -29,7 +35,14 @@ public class LocationFragmentActivity extends FragmentActivity
 	private LocationClient locationClient;
 	private GoogleMap map = null;
 	private OnLocationChangedListener onLocationChangedListener = null;
+	private SensorManager sensorManager;
+	private Sensor vectorSensor;
 	private static String TAG = "Location";
+	private float[] rotationMatrix = new float[16];
+	private float[] orientionValues = new float[3];
+	private double azimuth;
+	private double tilt;
+	private Location lastLocation;
 
 
 	@Override
@@ -37,6 +50,12 @@ public class LocationFragmentActivity extends FragmentActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.location_fragment_activity);
 
+        /*
+         * get vector sensor for sensing device orientation
+         */
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        vectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        
         /*
          * Create a new location client, using the enclosing class to
          * handle callbacks.
@@ -49,15 +68,16 @@ public class LocationFragmentActivity extends FragmentActivity
 	protected void onResume() {
 		
 		super.onResume();
+		sensorManager.registerListener(this, vectorSensor, SensorManager.SENSOR_DELAY_NORMAL);
 		locationClient.connect();
         setUpMapIfNeeded();
-
 
 	}
 
 	@Override
 	protected void onPause() {
-	
+
+		sensorManager.unregisterListener(this);
 		if (locationClient.isConnected()) {
 
 			locationClient.removeLocationUpdates(this);
@@ -77,7 +97,6 @@ public class LocationFragmentActivity extends FragmentActivity
 
 
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -85,6 +104,30 @@ public class LocationFragmentActivity extends FragmentActivity
         return true;
     }
 
+
+    /**
+     * SensorEventListener
+     */
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		
+		//calculate azimuth and tilt for camera position based on the device orientation
+		SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values);
+		SensorManager.getOrientation(rotationMatrix, orientionValues);
+		
+		azimuth = Math.toDegrees(orientionValues[0]);
+		tilt = Math.toDegrees(orientionValues[1]);
+		// TODO this is executed on UI thread, be aware of performance impacts!
+		moveCamera();
+		
+		//Log.d(TAG, "azimuth " + azimuth + " tilt " + tilt);
+	}
 
     /**
      * LocationSource
@@ -113,7 +156,13 @@ public class LocationFragmentActivity extends FragmentActivity
 	@Override
 	public void onLocationChanged(Location location) {
 		
-		updateCurrentLocationOnMap(location);
+		lastLocation = location;
+		if( onLocationChangedListener != null ) {
+			 
+			onLocationChangedListener.onLocationChanged(location);
+			
+		}
+		moveCamera();
 		 
 		Log.d(TAG, "onLocationChanged - " + location.toString());
 		
@@ -137,10 +186,8 @@ public class LocationFragmentActivity extends FragmentActivity
 		/* 
 		 * If a location is not available, which should happen very rarely, null will be returned.
 		 */
-		Location lastLocation = locationClient.getLastLocation();
-		if (lastLocation != null) {
-			updateCurrentLocationOnMap(lastLocation);
-		}
+		lastLocation = locationClient.getLastLocation();
+		moveCamera();
 		
 		Toast.makeText(this, "LocationClient connected", Toast.LENGTH_SHORT).show();
 		Log.d(TAG, "onConnected - " + (lastLocation != null ? lastLocation.toString() : "?"));
@@ -214,32 +261,30 @@ public class LocationFragmentActivity extends FragmentActivity
         
     }
 
-	private void updateCurrentLocationOnMap(Location location) {
-		if( onLocationChangedListener != null ) {
-			 
-			 onLocationChangedListener.onLocationChanged(location);
-			 
-			 LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
-			 //  prevent the user’s location from going “off-screen”
-		     if(!bounds.contains(new LatLng(location.getLatitude(), location.getLongitude()))) {
-			 
-		    	CameraPosition newCameraPosition =  new CameraPosition.Builder()
- 					.target(new LatLng(location.getLatitude(), location.getLongitude()))
- 					.zoom(18f)
- 					.bearing(0)
- 					.tilt(65)
- 					.build()
- 					;
+	private void moveCamera() {
 
-		    	 //map.animateCamera(
-	        		// CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
-		    	 map.moveCamera(
-		        		 CameraUpdateFactory.newCameraPosition(newCameraPosition));
-		    	 
-		     }
-	         
-        }
+		if (map == null || lastLocation == null) {
+			return;
+		}
+		CameraPosition newCameraPosition =  new CameraPosition.Builder()
+				// set target a little bit offset from the center of map
+				.target(SphericalUtil.computeOffset(
+						new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), 100, azimuth))
+				//.zoom(18f)
+				.zoom((float)(15 + 5*(Math.abs(tilt)/90)))
+				.bearing((float) azimuth)
+				//.tilt(65)
+				.tilt((float) clamp(tilt)) //.tilt(clamp(0, tilt, 70))???
+				.build()
+				;
+		
+		 map.moveCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition));
+        
 	}
 
+	private double clamp(double tilt) {
+		double t = Math.abs(tilt);
+		return t > 70 ? 70 : t;
+	}
 
 }
