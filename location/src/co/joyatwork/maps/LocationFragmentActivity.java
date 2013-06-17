@@ -22,7 +22,6 @@ import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.maps.android.SphericalUtil;
 
 public class LocationFragmentActivity extends FragmentActivity  
@@ -271,7 +270,7 @@ public class LocationFragmentActivity extends FragmentActivity
 				.target(SphericalUtil.computeOffset(
 						new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), 100, azimuth))
 				//.zoom(18f)
-				.zoom((float)(15 + 5*(Math.abs(tilt)/90)))
+				.zoom((float)(16 + 3*(Math.abs(tilt)/90)))
 				.bearing((float) azimuth)
 				//.tilt(65)
 				.tilt((float) clamp(tilt)) //.tilt(clamp(0, tilt, 70))???
@@ -284,7 +283,7 @@ public class LocationFragmentActivity extends FragmentActivity
 
 	private double clamp(double tilt) {
 		double t = Math.abs(tilt);
-		return t > 70 ? 70 : t;
+		return t > 65 ? 65 : t;
 	}
 
 }
