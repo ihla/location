@@ -145,6 +145,9 @@ public class LocationFragmentActivity extends FragmentActivity
 		Toast.makeText(this, "LocationClient connected", Toast.LENGTH_SHORT).show();
 		Log.d(TAG, "onConnected - " + (lastLocation != null ? lastLocation.toString() : "?"));
 		
+		/* Request high accuracy location & update interval 5 sec.
+		 * This would be appropriate for mapping applications that are showing your location in real-time.
+		 */
 		LocationRequest locationRequest = LocationRequest.create()
 				.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
 				.setInterval(5000) //TODO 5 sec interval????
