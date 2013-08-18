@@ -16,6 +16,7 @@
 
 package co.joyatwork.maps;
 
+import com.android.debug.hv.ViewServer;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
@@ -71,18 +72,26 @@ public class MapViewActivity extends Activity {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.mapview);
 
-        mapView = new MapView(this);
-        mapView.onCreate(savedInstanceState);
-        
         // Create a GLSurfaceView instance and set it
         // as the ContentView for this Activity
         glView = new MyGLSurfaceView(this);
+        
         setContentView(glView);
         
-        addContentView(mapView, 
-        		new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.MATCH_PARENT ));
+        //addContentView(mapView, 
+        	//	new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.MATCH_PARENT ));
         
+        //setUpMapIfNeeded();
+        /**/
+        mapView = new MapView(this);
+        setContentView(mapView);
+        mapView.onCreate(savedInstanceState);
+        mapView.addView(glView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT ,
+        		ViewGroup.LayoutParams.MATCH_PARENT ));
         setUpMapIfNeeded();
+        
+
+        ViewServer.get(this).addWindow(this);
     }
 
     @Override
@@ -96,6 +105,8 @@ public class MapViewActivity extends Activity {
         glView.onResume();
 
         //setUpMapIfNeeded();
+        
+        ViewServer.get(this).setFocusedWindow(this);
     }
 
     @Override
@@ -115,6 +126,8 @@ public class MapViewActivity extends Activity {
         mapView.onDestroy();
     	
         super.onDestroy();
+    	
+        ViewServer.get(this).removeWindow(this);
     }
 
     @Override
