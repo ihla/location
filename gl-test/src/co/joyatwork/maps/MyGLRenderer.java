@@ -55,7 +55,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         float ratio = (float) width / height;
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
-        Matrix.frustumM(projMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+        Matrix.frustumM(projMatrix, 0, -ratio, ratio, -1f, 1f, 1f, 10f);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         // Set the camera position (View matrix)
-        Matrix.setLookAtM(viewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, -3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 
         // Calculate the projection and view transformation
         Matrix.multiplyMM(mvpMatrix, 0, projMatrix, 0, viewMatrix, 0);
