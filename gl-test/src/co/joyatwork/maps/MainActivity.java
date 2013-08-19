@@ -24,11 +24,6 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
         
-        mapView = new MapView(this);
-        mapView.onCreate(savedInstanceState);
-        setContentView(mapView);
-        setUpMapIfNeeded();
-        
         glView = new GLSurfaceView(this);
         // Create an OpenGL ES 2.0 context.
         glView.setEGLContextClientVersion(2);
@@ -36,14 +31,23 @@ public class MainActivity extends Activity {
         glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         // Set the Renderer for drawing on the GLSurfaceView
         glView.setRenderer(new MyGLRenderer());
+        
+        setContentView(glView);
+        
         //set translucent view
         glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
         // put glView on the top of window
         glView.setZOrderOnTop(true);
 
-        addContentView(glView, 
-        		new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.MATCH_PARENT));
+        mapView = new MapView(this);
+        mapView.onCreate(savedInstanceState);
         
+        addContentView(mapView, 
+        		new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.MATCH_PARENT));
+        glView.getParent().bringChildToFront(glView);
+
+        setUpMapIfNeeded();
+
         ViewServer.get(this).addWindow(this);
 	}
 
