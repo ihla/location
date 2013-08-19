@@ -59,26 +59,26 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
 		mapView.onDestroy();
         ViewServer.get(this).removeWindow(this);
+		super.onDestroy();
 	}
 
 	@Override
 	public void onLowMemory() {
-		super.onLowMemory();
 		mapView.onDestroy();
+		super.onLowMemory();
 	}
 
 	@Override
 	protected void onPause() {
-		super.onPause();
 		mapView.onPause();
         // The following call pauses the rendering thread.
         // If your OpenGL application is memory intensive,
         // you should consider de-allocating objects that
         // consume significant memory here.
         glView.onPause();
+		super.onPause();
 	}
 
 	@Override
